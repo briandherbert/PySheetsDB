@@ -16,7 +16,7 @@ Use a Google sheet as a simple database. Built with logging in mind.
 5. Add the service account email as an editor
 6. Include this package in your project, or just copy ./sheets_db.py
 
-`_db = SheetsDB([PATH_TO_KEY_JSON], [SHEET_ID])
+`_db = PySheetsDB([PATH_TO_KEY_JSON], [SHEET_ID])
 `
 
 We'll call the tabs at the bottom of the sheet *tables*. `Sheet1` is the first default TABLE_NAME

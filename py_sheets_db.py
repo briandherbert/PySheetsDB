@@ -15,7 +15,7 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M'
 
 SHEETS_COL_LETTERS = list(string.ascii_uppercase)
 
-class SheetsDB:
+class PySheetsDB:
     _sheet_id = None
     _table_name = ''
     _table_id = None
