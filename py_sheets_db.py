@@ -63,6 +63,9 @@ class PySheetsDB:
             self.add_text_to_cell(f'{timestamp_idx}1', TIMESTAMP_COLUMN)
             header.append(TIMESTAMP_COLUMN)
 
+        # stupid python
+        self._col_name_to_idx = {}
+
         for i, h in enumerate(header):
             col_name = '' if not h else h
             self._col_name_to_idx[col_name] = i
@@ -88,7 +91,7 @@ class PySheetsDB:
             body=body
         ).execute()
 
-    def _add_rows(self, rows_vals, insert_top = False):   
+    def _add_rows(self, rows_vals, insert_top = False): 
         row_num = 2
         if insert_top:
             # add blank rows
@@ -113,8 +116,8 @@ class PySheetsDB:
     # [{col_name1 : val1, col_name2 : val2}, ...]
     def add_rows(self, list_dicts_rows, insert_top = False):
         rows = []
-        for d in list_dicts_rows:
 
+        for d in list_dicts_rows:
             vals = [''] * self._num_cols
             for k in d.keys():
                 idx = self._col_name_to_idx[k]
