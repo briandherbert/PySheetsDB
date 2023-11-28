@@ -21,9 +21,9 @@ will produce:
 |first name |last name |UPDATED|
 |------|-----|----|
 |alice |adams |2023-10-16 16:01|
-|bob |	barker |2023-10-16 16:01|
+|bob |	barker |2023-10-16 16:21|
 
-The "UPDATE" column will automatically be added if it's not present. You can suppress the timestamp in the DB constructor with `auto_timestamp = False`
+The "UPDATED" column will automatically be added if it's not present. You can suppress the timestamp in the DB constructor with `auto_timestamp = False`
 
 ## Setup
 Operations are done by making a service account off your Google account and giving it access to a GSheet.
