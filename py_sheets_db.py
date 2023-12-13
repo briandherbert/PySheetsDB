@@ -28,7 +28,10 @@ class PySheetsDB:
 
     _auto_timestamp = False
 
-    def __init__(self, token_file: str, sheet_id: str, table_name = 'Sheet1', read_only = False, auto_timestamp = True):
+    _id_col_name = None
+
+    def __init__(self, token_file: str, sheet_id: str, table_name = 'Sheet1', 
+                 read_only = False, auto_timestamp = True, id_col_name=None):
         if not os.path.exists(token_file):
             raise Exception("No token file!")
         
@@ -37,6 +40,8 @@ class PySheetsDB:
         self._table_name = table_name
 
         self._auto_timestamp = auto_timestamp
+
+        self._id_col_name = id_col_name
 
         creds = service_account.Credentials.from_service_account_file(
         token_file, scopes=SHEETS_READ_ONLY_SCOPES if read_only else SHEETS_READ_WRITE_SCOPES)
@@ -60,12 +65,13 @@ class PySheetsDB:
 
         if auto_timestamp and TIMESTAMP_COLUMN not in header:
             timestamp_idx = SHEETS_COL_LETTERS[len(header)]
-            self.add_text_to_cell(f'{timestamp_idx}1', TIMESTAMP_COLUMN)
+            self.set_cell_text(f'{timestamp_idx}1', TIMESTAMP_COLUMN)
             header.append(TIMESTAMP_COLUMN)
 
         # stupid python
         self._col_name_to_idx = {}
 
+        # build map of column names to idx
         for i, h in enumerate(header):
             col_name = '' if not h else h
             self._col_name_to_idx[col_name] = i
@@ -75,7 +81,7 @@ class PySheetsDB:
         values = result.get('values', [])
         return values
 
-    def add_text_to_cell(self, cell, text):        
+    def set_cell_text(self, cell, text):        
         # Build range for the cell
         cell_range = f'{self._table_name}!{cell}'
         
@@ -161,3 +167,32 @@ class PySheetsDB:
             ).execute()
         except Exception as e:
             print(f"Failed to insert row at index {index}. Error: {e}")
+
+
+    def update_row_cell(self, id, column_name, cell_val):
+        if self._id_col_name is None:
+            raise ValueError("ID column name not set")
+
+        if column_name not in self._col_name_to_idx:
+            raise ValueError(f"Column {column_name} does not exist")
+
+        # Fetch all rows
+        all_rows = self.get_sheet_values()
+
+        # Find the row index with the matching ID
+        id_col_idx = self._col_name_to_idx[self._id_col_name]
+        target_row_idx = None
+        for idx, row in enumerate(all_rows):
+            if len(row) > id_col_idx and row[id_col_idx] == str(id):
+                target_row_idx = idx + 1  # +1 to account for header row
+                break
+
+        if target_row_idx is None:
+            raise ValueError(f"No row found with ID {id}")
+
+        # Column index for the column to update
+        col_idx = self._col_name_to_idx[column_name]
+        col_letter = SHEETS_COL_LETTERS[col_idx]
+
+        # Update the cell
+        self.set_cell_text(f'{col_letter}{target_row_idx}', cell_val)

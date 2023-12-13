@@ -21,9 +21,9 @@ will produce:
 |first name |last name |UPDATED|
 |------|-----|----|
 |alice |adams |2023-10-16 16:01|
-|bob |	barker |2023-10-16 16:01|
+|bob |	barker |2023-10-16 16:21|
 
-The "UPDATE" column will automatically be added if it's not present. You can suppress the timestamp in the DB constructor with `auto_timestamp = False`
+The "UPDATED" column will automatically be added if it's not present. You can suppress the timestamp in the DB constructor with `auto_timestamp = False`
 
 ## Setup
 Operations are done by making a service account off your Google account and giving it access to a GSheet.
@@ -36,9 +36,30 @@ Operations are done by making a service account off your Google account and givi
 6. Include this package in your project, or just copy ./sheets_db.py
 
 ### Usage
-
 ```
 from py_sheets_db import PySheetsDB
 _db = PySheetsDB([PATH_TO_KEY_JSON], [SHEET_ID])
+```
+
+**Read sheet**
+```
 print(_db.get_sheet_values())
+```
+
+**Update rows**
+```
+_db.add_rows(6, [['new', 'gnu'],['moar','more']])
+
+_db.add_rows([{'col 1' : 'alice', 'col 2': 'adams'},{'col 2' : 'barker', 'col 1': 'bob'}], insert_top=True)
+
+_db.insert_blank_row()
+```
+
+**Update cells**
+```
+_db.set_cell_text('A5', 'Hello')
+
+# If you specify an id column in the constructor, you can use it to reference a row
+_db = PySheetsDB([PATH_TO_KEY_JSON], [SHEET_ID], id_col_name='id')
+_db.update_row_cell('PROJ-42', 'STATUS', 'complete')
 ```
