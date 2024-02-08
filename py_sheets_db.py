@@ -77,6 +77,10 @@ class PySheetsDB:
             self._col_name_to_idx[col_name] = i
 
     def get_sheet_values(self, range = 'A:Z'):
+        """
+        Returns a list of lists like
+        [['1', 'alice', 'adams'], ['2', 'bob', 'barker']]
+        """
         result = self._service.values().get(spreadsheetId=self._sheet_id,range=f'{self._table_name}!{range}').execute()
         values = result.get('values', [])
         return values
@@ -154,7 +158,7 @@ class PySheetsDB:
                     "sheetId": self._table_id, 
                     "dimension": "ROWS",
                     "startIndex": index - 1,  # Convert to 0-based index for the Sheets API
-                    "endIndex": index
+                    "endIndex": index - 1 + num_rows
                 },
                 "inheritFromBefore": False
             }
