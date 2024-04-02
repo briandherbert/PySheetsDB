@@ -5,6 +5,7 @@ from google.oauth2 import service_account
 import os.path
 import datetime
 import string
+import json
 
 SHEETS_READ_ONLY_SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 SHEETS_READ_WRITE_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -30,10 +31,15 @@ class PySheetsDB:
 
     _id_col_name = None
 
-    def __init__(self, token_file: str, sheet_id: str, table_name = 'Sheet1', 
+    def __init__(self, token_file_or_key: str, sheet_id: str, table_name = 'Sheet1', 
                  read_only = False, auto_timestamp = True, id_col_name=None):
-        if not os.path.exists(token_file):
-            raise Exception("No token file!")
+        """
+        token_file can also be the key string
+        """
+        is_token_file = True
+        if not os.path.exists(token_file_or_key):
+            print(f'Token is not file, falling back to string')
+            is_token_file = False
         
         self._sheet_id = sheet_id
 
@@ -43,8 +49,16 @@ class PySheetsDB:
 
         self._id_col_name = id_col_name
 
-        creds = service_account.Credentials.from_service_account_file(
-        token_file, scopes=SHEETS_READ_ONLY_SCOPES if read_only else SHEETS_READ_WRITE_SCOPES)
+        creds = None
+
+        if is_token_file:
+            creds = service_account.Credentials.from_service_account_file(
+            token_file_or_key, scopes=SHEETS_READ_ONLY_SCOPES if read_only else SHEETS_READ_WRITE_SCOPES)
+        else:
+            # Convert the JSON string to a dictionary
+            key_dict = json.loads(token_file_or_key)            
+            creds = service_account.Credentials.from_service_account_info(
+            key_dict, scopes=SHEETS_READ_ONLY_SCOPES if read_only else SHEETS_READ_WRITE_SCOPES)
 
         service = build('sheets', 'v4', credentials=creds)
 
@@ -200,3 +214,24 @@ class PySheetsDB:
 
         # Update the cell
         self.set_cell_text(f'{col_letter}{target_row_idx}', cell_val)
+
+    def delete_rows_beyond(self, max_rows):
+        spreadsheet_data = [
+            {
+                "deleteDimension": {
+                    "range": {
+                        "sheetId": self._table_id,
+                        "dimension": "ROWS",
+                        "startIndex": max_rows
+                    }
+                }
+            }
+        ]
+        body = {"requests": spreadsheet_data}
+
+        try:
+            result = self._service.batchUpdate(
+                spreadsheetId=self._sheet_id, body=body).execute()
+            print("result " + str(result))
+        except Exception as e:
+            print("Unable to resize sheet. Exception " + str(e))

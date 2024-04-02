@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="PySheetsDB",
-    version="0.3.3",
+    version="0.3.4",
     packages=find_packages(),
     py_modules=["py_sheets_db"],
     install_requires=[
