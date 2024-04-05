@@ -1,5 +1,6 @@
 # This requires a frozen header row!
 
+import base64
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os.path
@@ -34,12 +35,9 @@ class PySheetsDB:
     def __init__(self, token_file_or_key: str, sheet_id: str, table_name = 'Sheet1', 
                  read_only = False, auto_timestamp = False, id_col_name=None):
         """
-        token_file can also be the key string
+        token_file can also be the key string obtained via cmd line
+        base64 -i [service_acct_key.json]
         """
-        is_token_file = True
-        if not os.path.exists(token_file_or_key):
-            print(f'Token is not file, falling back to string')
-            is_token_file = False
         
         self._sheet_id = sheet_id
 
@@ -51,12 +49,15 @@ class PySheetsDB:
 
         creds = None
 
-        if is_token_file:
+        if os.path.exists(token_file_or_key):
             creds = service_account.Credentials.from_service_account_file(
             token_file_or_key, scopes=SHEETS_READ_ONLY_SCOPES if read_only else SHEETS_READ_WRITE_SCOPES)
         else:
+            print(f'Token is not file, falling back to string')
             # Convert the JSON string to a dictionary
-            key_dict = json.loads(token_file_or_key)            
+            creds_json = base64.b64decode(token_file_or_key).decode('utf-8')
+
+            key_dict = json.loads(creds_json)            
             creds = service_account.Credentials.from_service_account_info(
             key_dict, scopes=SHEETS_READ_ONLY_SCOPES if read_only else SHEETS_READ_WRITE_SCOPES)
 
