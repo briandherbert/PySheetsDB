@@ -32,7 +32,7 @@ class PySheetsDB:
     _id_col_name = None
 
     def __init__(self, token_file_or_key: str, sheet_id: str, table_name = 'Sheet1', 
-                 read_only = False, auto_timestamp = True, id_col_name=None):
+                 read_only = False, auto_timestamp = False, id_col_name=None):
         """
         token_file can also be the key string
         """
@@ -114,6 +114,23 @@ class PySheetsDB:
             valueInputOption='RAW',
             body=body
         ).execute()
+
+    def set_cell_range_texts(self, cell_range, texts):        
+        # Build range for the cell
+        cell_range = f'{self._table_name}!{cell_range}'
+        
+        # Set value for the cell
+        body = {
+            'values': texts 
+        }
+        
+        response = self._service.values().update(
+            spreadsheetId=self._sheet_id, 
+            range=cell_range,
+            valueInputOption='RAW',
+            body=body
+        ).execute()    
+        print(response)    
 
     def _add_rows(self, rows_vals, insert_top = False): 
         row_num = 2
