@@ -156,7 +156,7 @@ class PySheetsDB:
         ).execute()
 
     # [{col_name1 : val1, col_name2 : val2}, ...]
-    def add_rows(self, list_dicts_rows, insert_top = False):
+    def add_rows(self, list_dicts_rows, insert_top = False, raw=True):
         rows = []
 
         for d in list_dicts_rows:
@@ -169,7 +169,7 @@ class PySheetsDB:
             if self._auto_timestamp:
                 vals[self._col_name_to_idx[TIMESTAMP_COLUMN]] = self.now_human()    
             rows.append(vals)
-        self._add_rows(rows, insert_top=insert_top)
+        self._add_rows(rows, insert_top=insert_top, raw=True)
     
     def now_human(self) -> str:
         return datetime.datetime.now().strftime(TIMESTAMP_FORMAT)
