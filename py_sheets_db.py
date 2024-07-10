@@ -169,7 +169,7 @@ class PySheetsDB:
             if self._auto_timestamp:
                 vals[self._col_name_to_idx[TIMESTAMP_COLUMN]] = self.now_human()    
             rows.append(vals)
-        self._add_rows(rows, insert_top=insert_top, raw=True)
+        self._add_rows(rows, insert_top=insert_top, raw=raw)
     
     def now_human(self) -> str:
         return datetime.datetime.now().strftime(TIMESTAMP_FORMAT)
