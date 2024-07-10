@@ -100,7 +100,7 @@ class PySheetsDB:
         values = result.get('values', [])
         return values
 
-    def set_cell_text(self, cell, text):        
+    def set_cell_text(self, cell, text, raw = True):        
         # Build range for the cell
         cell_range = f'{self._table_name}!{cell}'
         
@@ -112,11 +112,11 @@ class PySheetsDB:
         self._service.values().update(
             spreadsheetId=self._sheet_id, 
             range=cell_range,
-            valueInputOption='RAW',
+            valueInputOption='RAW' if raw else 'USER_ENTERED',
             body=body
         ).execute()
 
-    def set_cell_range_texts(self, cell_range, texts):        
+    def set_cell_range_texts(self, cell_range, texts, raw = True):        
         # Build range for the cell
         cell_range = f'{self._table_name}!{cell_range}'
         
@@ -128,12 +128,12 @@ class PySheetsDB:
         response = self._service.values().update(
             spreadsheetId=self._sheet_id, 
             range=cell_range,
-            valueInputOption='RAW',
+            valueInputOption='RAW' if raw else 'USER_ENTERED',
             body=body
         ).execute()    
         print(response)    
 
-    def _add_rows(self, rows_vals, insert_top = False): 
+    def _add_rows(self, rows_vals, insert_top = False, raw = True): 
         row_num = 2
         if insert_top:
             # add blank rows
@@ -151,7 +151,7 @@ class PySheetsDB:
         self._service.values().update(
             spreadsheetId=self._sheet_id, 
             range=cell_range,
-            valueInputOption='RAW',
+            valueInputOption='RAW' if raw else 'USER_ENTERED',
             body=body
         ).execute()
 
