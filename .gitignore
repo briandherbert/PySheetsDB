@@ -34,3 +34,5 @@ venv.bak/
 
 # Test file
 test_sheets_db.py
+.env
+.venv/

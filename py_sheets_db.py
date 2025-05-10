@@ -53,7 +53,7 @@ class PySheetsDB:
             creds = service_account.Credentials.from_service_account_file(
             token_file_or_key, scopes=SHEETS_READ_ONLY_SCOPES if read_only else SHEETS_READ_WRITE_SCOPES)
         else:
-            print(f'Token is not file, falling back to string')
+            # print(f'Token is not file, falling back to string')
             # Convert the JSON string to a dictionary
             creds_json = base64.b64decode(token_file_or_key).decode('utf-8')
 
@@ -76,12 +76,12 @@ class PySheetsDB:
 
         header = self.get_sheet_values(range='1:1')[0]
 
-        self._num_cols = len(header)
-
         if auto_timestamp and TIMESTAMP_COLUMN not in header:
             timestamp_idx = SHEETS_COL_LETTERS[len(header)]
             self.set_cell_text(f'{timestamp_idx}1', TIMESTAMP_COLUMN)
             header.append(TIMESTAMP_COLUMN)
+
+        self._num_cols = len(header)
 
         # stupid python
         self._col_name_to_idx = {}

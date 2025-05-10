@@ -5,18 +5,20 @@ Use a Google sheet as a simple database. Built with logging in mind.
 - Fetch table data
 - Add row(s) to top or bottom
 - Auto-add timestamp
+- Delete rows beyond a certain count
 
-**Destructive operations not supported.**
+**Most destructive operations are not supported. However, `delete_rows_beyond()` is available.**
 
 ## Example
-We'll call the tabs at the bottom of the sheet *tables*. `Sheet1` is the first default TABLE_NAME
+We'll call the tabs at the bottom of the sheet *tables*. The `table_name` parameter in the `PySheetsDB` constructor specifies which sheet (tab) to use. It defaults to 'Sheet1'.
 
+If you initialize `_db = PySheetsDB(..., table_name='myTable1')` and then run:
 `
 rows = [{'first name' : 'alice', 'last name': 'adams'},{'last name' : 'barker', 'first name': 'bob'}]
-_db.add_rows(rows, table_name='myTable1', insert_top=True)
+_db.add_rows(rows, insert_top=True)
 `
 
-will produce:
+will produce (assuming `auto_timestamp=True` in the constructor, which is the default):
 
 |first name |last name |UPDATED|
 |------|-----|----|
@@ -36,30 +38,56 @@ Operations are done by making a service account off your Google account and givi
 6. Include this package in your project, or just copy ./sheets_db.py
 
 ### Usage
-```
+```python
 from py_sheets_db import PySheetsDB
-_db = PySheetsDB([PATH_TO_KEY_JSON], [SHEET_ID])
+
+_db = PySheetsDB(
+    token_file_or_key=[PATH_TO_KEY_JSON_OR_BASE64_STRING],
+    sheet_id=[SHEET_ID],
+    table_name='Sheet1',        # Optional: Name of the sheet (tab) to use. Defaults to 'Sheet1'.
+    read_only=False,            # Optional: Set to True to open in read-only mode. Defaults to False.
+    auto_timestamp=True,        # Optional: Automatically add/update 'UPDATED' column. Defaults to True.
+    id_col_name=None            # Optional: Name of the column to use as a unique ID for rows.
+)
 ```
 
 **Read sheet**
 ```
-print(_db.get_sheet_values())
+print(_db.get_sheet_values()) 
+# Example Output: [['1', 'alice', 'adams'], ['2', 'bob', 'barker']]
+
+# You can also specify a range (default is 'A:Z')
+print(_db.get_sheet_values(range='A1:C10'))
 ```
 
 **Update rows**
 ```
-_db.add_rows(6, [['new', 'gnu'],['moar','more']])
+# Add rows using a list of dictionaries. Default is to add to bottom.
+# The `raw` parameter (default True) determines if values are parsed by Sheets or taken as-is.
+_db.add_rows([{'col 1' : 'alice', 'col 2': 'adams'},{'col 2' : 'barker', 'col 1': 'bob'}], insert_top=True, raw=True)
 
-_db.add_rows([{'col 1' : 'alice', 'col 2': 'adams'},{'col 2' : 'barker', 'col 1': 'bob'}], insert_top=True)
-
-_db.insert_blank_row()
+# Insert blank rows. Default is 1 row at index 2 (below a header row).
+_db.insert_blank_rows(num_rows=1, index=2)
 ```
 
 **Update cells**
 ```
-_db.set_cell_text('A5', 'Hello')
+# The `raw` parameter (default True) determines if values are parsed by Sheets or taken as-is.
+_db.set_cell_text('A5', 'Hello', raw=True)
 
 # If you specify an id column in the constructor, you can use it to reference a row
-_db = PySheetsDB([PATH_TO_KEY_JSON], [SHEET_ID], id_col_name='id')
 _db.update_row_cell('PROJ-42', 'STATUS', 'complete')
 ```
+
+**Set Multiple Cell Values (Range)**
+```python
+# Set values for a range of cells. 'texts' should be a list of lists.
+# Example: [['A1_val', 'B1_val'], ['A2_val', 'B2_val']] for range 'A1:B2'
+_db.set_cell_range_texts(cell_range='A10:B11', texts=[['Hello', 'World'], ['PySheetsDB', 'Rocks!']], raw=True)
+```
+
+**Delete Rows**
+```
+# Delete all rows after a specified maximum number of rows.
+# For example, to keep only the header and 100 data rows:
+_db.delete_rows_beyond(max_rows=101) 

@@ -7,6 +7,7 @@ setup(
     py_modules=["py_sheets_db"],
     install_requires=[
         'google-api-python-client',
+        'python-dotenv',
         # ... any other dependencies ...
     ],
 )
